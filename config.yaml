@@ -1,0 +1,27 @@
+# 巡护协同调度系统配置参考
+# 运行时以环境变量为准，此文件仅作文档参考
+
+server:
+  port: "53115"              # 监听端口
+
+station:
+  chief_id: "chief-001"       # 保护站站长 ID（审批领用单）
+  duty_room_id: "duty-room-001"    # 保护站值班室（低/中级事件）
+  department_id: "forestry-dept-001" # 上级林草部门（高级/严重事件）
+
+worker:
+  interval: "5s"             # 后台任务执行间隔
+
+equipment:
+  emergency_types:
+    - satellite_phone        # 卫星电话（当日单队占用）
+    - infrared_camera        # 红外相机（当日单队占用）
+  regular_types:
+    - gps_tracker
+    - binoculars
+    - radio
+
+sync:
+  dedup_key: "device_id|officer_id|timestamp"  # 去重键格式
+  conflict_strategy: "severity_merge"          # 同键高级别覆盖低级别
+  retry_ttl: "5m"                              # 补传重试队列保留时长

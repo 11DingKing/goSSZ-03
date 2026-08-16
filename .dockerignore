@@ -1,0 +1,27 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+
+# Build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dydylib
+*.test
+*.out
+
+# Test coverage
+coverage.out
+coverage.html
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Docs
+*.md
