@@ -36,10 +36,6 @@ type EquipmentStore struct {
 	// This is the concurrency boundary: only one team may hold a given
 	// emergency device type on a given calendar day.
 	occupancy map[string]string
-
-	// assignBuf is kept between reservations so building the assignment list
-	// does not allocate a fresh slice on every dispatch.
-	assignBuf []domain.AssignedEquipment
 }
 
 // NewEquipmentStore returns an empty equipment store.
@@ -104,7 +100,10 @@ func (es *EquipmentStore) ReserveForTeam(teamID, date string, needs []domain.Equ
 	es.mu.Lock()
 	defer es.mu.Unlock()
 
-	assigned := es.assignBuf[:0]
+	// Each reservation gets its own slice: the result is handed to the caller
+	// and stored in a dispatch order, so it must not share storage with any
+	// other reservation.
+	assigned := make([]domain.AssignedEquipment, 0, len(needs))
 	acquiredOccupancy := make(map[string]domain.EquipmentType) // rollback tracker
 
 	for _, need := range needs {
@@ -143,13 +142,11 @@ func (es *EquipmentStore) ReserveForTeam(teamID, date string, needs []domain.Equ
 		if found < need.Quantity {
 			// Rollback: release reservations and occupancy locks.
 			es.rollbackReservation(assigned, acquiredOccupancy)
-			es.assignBuf = assigned[:0]
 			return nil, fmt.Errorf("insufficient stock for %s: need %d, found %d",
 				need.Type, need.Quantity, found)
 		}
 	}
 
-	es.assignBuf = assigned
 	return assigned, nil
 }
 
